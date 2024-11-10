@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Quality Test Sites by ZIP Code</title>
+</head>
+<body>
+    <h1>Find Water Quality Test Sites by ZIP Code</h1>
+    <form id="zipForm">
+        <label for="zipCode">Enter ZIP Code:</label>
+        <input type="text" id="zipCode" name="zipCode" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <h2>Results:</h2>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById("zipForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const zipCode = document.getElementById("zipCode").value;
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "<p>Loading...</p>";
+
+            try {
+                const response = await fetch(`/get_water_quality?zipCode=${zipCode}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+                } else if (data.length > 0) {
+                    resultsDiv.innerHTML = "";
+                    data.forEach(site => {
+                        resultsDiv.innerHTML += `
+                            <p><strong>Site Name:</strong> ${site.monitoringLocationName || 'N/A'}</p>
+                            <p><strong>Organization:</strong> ${site.organizationIdentifier || 'N/A'}</p>
+                            <p><strong>Site Type:</strong> ${site.monitoringLocationTypeName || 'N/A'}</p>
+                            <p><strong>Latitude:</strong> ${site.latitude || 'N/A'}</p>
+                            <p><strong>Longitude:</strong> ${site.longitude || 'N/A'}</p>
+                            <hr>
+                        `;
+                    });
+                } else {
+                    resultsDiv.innerHTML = "<p>No water quality test sites found for this ZIP code.</p>";
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: red;">An error occurred: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
